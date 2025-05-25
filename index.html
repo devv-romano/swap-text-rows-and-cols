@@ -1,0 +1,107 @@
+<!DOCTYPE html> 
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Swap Rows and Columns For Text</title>
+    <style>
+      table, td { border: 1px solid black; margin: 1em; } 
+      body {text-align: center;}
+      #table-container { display: flex; flex-wrap: wrap; max-width: 100%}
+      #table-container > * { min-width: 6rem }
+    </style>
+  </head>
+  <body>
+
+    <form onsubmit="event.preventDefault()">
+      <label for="text-input">Text</label>
+      <input type="text" id="text-input"/>
+      <label for="numrows-input">in # Rows</label>
+      <input type="number" id="numrows-input"/>
+      <button onclick="onUpdateInput()" type="submit" id="update-button">Generate</button>
+      <button onclick="onClearTables()" type="button" id="clear-tables-button">Clear</button>
+    </form>
+    <small>Press CTRL+U to view source code</small>
+    <div id="table-container"/>
+
+    <script>
+      // default values
+      let textDefault = "UWITISGREAT";
+      let numRowsDefault = 3;
+
+      // set inputs
+      const textInput = document.getElementById("text-input");
+      textInput.value = textDefault;
+      const numRowsInput = document.getElementById("numrows-input");
+      numRowsInput.value = numRowsDefault;
+
+
+      // convert text spanning row-wise to spanning col-wise
+      function rowToCol(textToSwap, numRows) { 
+        const numCols = Math.ceil(textToSwap.length / numRows);
+        let newString = "";
+        for (let i = 0; i < numRows; i++) {
+          for (let col = 0; col < numCols; col++) {
+            if (i + (col * numRows) < textToSwap.length) {
+              newString += textToSwap[i + (col * numRows)];
+            }
+            else {
+              newString += " "; // this space is a placeholder to be removed when generating string as a table
+              // this is a consequence of the swapping logic being separate from the generateTable function
+              // spaces should not be shown in rendered result
+            }
+          }
+        }
+        return newString;
+      }
+
+      const tableContainer = document.getElementById("table-container");
+
+      // add table within container based on text and number of rows
+      function generateTable(textToGenerate, numRowsToGenerate) {
+        const numCols = Math.ceil(textToGenerate.length / numRowsToGenerate);
+
+        let textPrintedIndex = 0;
+        const table = document.createElement("table");
+        const caption = document.createElement("caption");
+        const captionText = textToGenerate.replaceAll(' ', ''); // see space as placeholder above
+        caption.innerHTML = `"${captionText}" in ${numRowsToGenerate} row(s)`;
+        table.appendChild(caption);
+        for (let row = 0; row < numRowsToGenerate; row++) {
+          const row = document.createElement("tr");
+          for (let col = 0; col < numCols; col++) {
+            const dataCell = document.createElement("td");
+            if (textPrintedIndex < textToGenerate.length) {
+              dataCell.textContent = textToGenerate[textPrintedIndex];
+              textPrintedIndex++;
+            }
+            else {
+              dataCell.innerHTML = "&nbsp;"; // add non-breaking space so the browser renders empty cells properly
+            }
+            row.appendChild(dataCell);
+          }
+          table.appendChild(row);
+        }
+        tableContainer.appendChild(table);
+      }
+
+      // generate new tables when clicking "Generate"
+      function onUpdateInput() {
+        if (textInput.value.length == 0 || numRowsInput.value < 1) return;
+        let text = textInput.value;
+        let rows = numRowsInput.value;
+        generateTable(text, rows);
+        generateTable(rowToCol(text, rows), rows);
+      }
+
+      // clear container when clicking "Clear"
+      function onClearTables() {
+        tableContainer.replaceChildren();
+      }
+
+      // automatically use default values when loading the page
+      onUpdateInput();
+    </script>
+  </body>
+</html>
